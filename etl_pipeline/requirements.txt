@@ -1,0 +1,9 @@
+dagster==1.9.6
+dagit==1.9.6
+dagster-postgres==0.25.6
+pandas==2.2.3
+minio==7.2.12
+SQLAlchemy==2.0.36
+bs4==0.0.2
+pyarrow==18.1.0
+pyspark==3.5.0
