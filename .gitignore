@@ -3,3 +3,9 @@
 /spark
 /spark_notebook
 __pycache__/
+
+dagster_home/.logs_queue/
+dagster_home/.nux/
+dagster_home/.telemetry/
+dagster_home/compute_logs/
+tmp/
