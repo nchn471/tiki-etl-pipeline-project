@@ -2,3 +2,4 @@
 /postgresql
 /spark
 /spark_notebook
+__pycache__/
