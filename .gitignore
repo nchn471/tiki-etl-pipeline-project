@@ -1,11 +1,15 @@
 /minio
 /postgresql
-/spark
-/spark_notebook
+/spark_notebook/*
+!/spark_notebook/Dockerfile
+!/spark_notebook/spark-defaults.conf
+
+/metabase_data
 __pycache__/
 
 dagster_home/.logs_queue/
 dagster_home/.nux/
 dagster_home/.telemetry/
 dagster_home/compute_logs/
+dagster_home/logs
 tmp/

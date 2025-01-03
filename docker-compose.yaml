@@ -1,18 +1,5 @@
 services:
-  # Pipelines
-  etl_pipeline:
-    build:
-      context: ./etl_pipeline
-      dockerfile: ./Dockerfile
-    container_name: etl_pipeline
-    image: etl_pipeline:latest
-    volumes:
-      - ./etl_pipeline:/opt/dagster/app
-    env_file:
-      - env
-    networks:
-      - de_network
-      
+
   de_psql:
     image: postgres:15
     container_name: de_psql
@@ -65,7 +52,6 @@ services:
     networks:
       - de_network
 
-  # Dagster
   de_dagster:
     build:
       context: ./dagster/
@@ -150,6 +136,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: "spark_notebook"
     user: root
+
     environment:
       - JUPYTER_ENABLE_LAB="yes"
       - GRANT_SUDO="yes"
@@ -162,16 +149,29 @@ services:
     networks:
       - de_network
 
-    # de_metabase:
-    #   image: metabase/metabase:latest
-    #   container_name: de_metabase
-    #   volumes:
-    #     - ./storage/metabase_data:/metabase_data
-    #   ports:
-    #     - "3030:3000"
-    #   env_file: .env
-    #   networks:
-    #     - de_network
+  etl_pipeline:
+    build:
+      context: ./etl_pipeline
+      dockerfile: ./Dockerfile
+    container_name: etl_pipeline
+    image: etl_pipeline:latest
+    volumes:
+      - ./etl_pipeline:/opt/dagster/app
+    env_file:
+      - env
+    networks:
+      - de_network
+
+  de_metabase:
+      image: metabase/metabase:v0.52.4.4
+      container_name: de_metabase
+      volumes:
+        - ./metabase_data:/metabase_data
+      ports:
+        - "3000:3000"
+      env_file: env
+      networks:
+        - de_network
 networks:
   de_network:
     driver: bridge

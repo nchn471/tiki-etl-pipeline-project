@@ -20,3 +20,12 @@ DATALAKE_BUCKET=warehouse
 AWS_ACCESS_KEY_ID=minio
 AWS_SECRET_ACCESS_KEY=minio123
 AWS_REGION=us-east-1
+
+# Metabase
+MB_DB_TYPE=postgres
+MB_DB_DBNAME=postgres
+MB_DB_PORT=5432
+MB_DB_USER=admin
+MB_DB_PASS=admin123
+MB_DB_HOST=de_psql
+# MB_DB_FILE=/metabase_data/metabase.db
