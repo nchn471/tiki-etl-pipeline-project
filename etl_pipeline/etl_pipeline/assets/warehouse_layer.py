@@ -1,5 +1,4 @@
-from dagster import asset, multi_asset, Output, AssetIn, AssetOut
-import pandas as pd
+from dagster import multi_asset, Output, AssetIn, AssetOut
 
 @multi_asset(
     ins={
@@ -136,6 +135,42 @@ def dwh_products_authors(gold_products_authors) :
 
 @multi_asset(
     ins={
+        "gold_images_url": AssetIn(key_prefix=["gold", "tiki"]),
+    },
+    outs={
+        "images_url": AssetOut(
+            io_manager_key="psql_io_manager",
+            key_prefix=["postgres", "dwh"],
+            metadata={
+                "primary_keys": [
+                    "product_id",
+                    "seller_id",
+                    "image_url"     
+                ],
+                "columns": [
+                    "product_id",
+                    "seller_id",
+                    "image_url"     
+                ],
+            },
+        )
+    },
+    group_name="warehouse_layer",
+    compute_kind="PostgreSQL",
+)
+def dwh_images_url(gold_images_url) :
+
+    return Output(
+        gold_images_url,
+        metadata={
+            "schema": "dwh",
+            "records_count": gold_images_url.count(),
+        },
+    )
+
+
+@multi_asset(
+    ins={
         "gold_brands": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
@@ -195,7 +230,6 @@ def dwh_brands(gold_brands) :
                     "review_count",
                     "day_ago_created",
                     "product_url",
-                    "image_urls",
                     "is_authentic",
                     "is_freeship_xtra",
                     "is_top_deal",

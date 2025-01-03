@@ -17,7 +17,6 @@ def connect_psql(config):
     except Exception:
         raise
 
-
 class PostgreSQLIOManager(IOManager):
     def __init__(self, config):
         self._config = config
@@ -33,8 +32,6 @@ class PostgreSQLIOManager(IOManager):
 
             primary_keys = (context.metadata or {}).get("primary_keys", [])
             ls_columns = (context.metadata or {}).get("columns", [])
-            if not isinstance(obj, pd.DataFrame):
-                obj = obj.toPandas()
             select_columns = []
             for col in ls_columns:
                 if col.endswith("_at"):
@@ -50,43 +47,46 @@ class PostgreSQLIOManager(IOManager):
                     text(f"CREATE TEMP TABLE IF NOT EXISTS {tmp_tbl} (LIKE {schema}.{table})")
                 )
 
-                obj[ls_columns].to_sql(
-                    name=tmp_tbl,
-                    con=db_conn,
-                    schema=schema,
-                    if_exists="replace",
-                    index=False,
-                    chunksize=10000,
-                    method="multi",
-                )
-
-                result = cursor.execute(text(f"SELECT COUNT(*) FROM {schema}.{tmp_tbl}"))
-                for row in result:
-                    print(f"Temp table records: {row}")
-
-                if len(primary_keys) > 0:
-                    update_columns = [f"{col} = EXCLUDED.{col}" for col in ls_columns if col not in primary_keys]
-                    update_columns_sql = ", ".join(update_columns)
-                    command = f"""
-                    BEGIN TRANSACTION;
-                    INSERT INTO {schema}.{table} 
-                    SELECT {select_columns_sql} 
-                    FROM {schema}.{tmp_tbl}
-                    ON CONFLICT ({', '.join(primary_keys)}) 
-                    DO NOTHING; --UPDATE SET {update_columns_sql}; 
-                    END TRANSACTION;
-                    """
+                if isinstance(obj, pd.DataFrame):
+                    obj[ls_columns].to_sql(
+                        name=tmp_tbl,
+                        con=db_conn,
+                        schema=schema,
+                        if_exists="replace",
+                        index=False,
+                        chunksize=10000,
+                        method="multi",
+                    )
                 else:
-                    command = f"""
-                    BEGIN TRANSACTION;
-                    TRUNCATE TABLE {schema}.{table};
-                    INSERT INTO {schema}.{table}
-                    SELECT {select_columns_sql}
-                    FROM {schema}.{tmp_tbl};
-                    END TRANSACTION;
-                    """
+                    jdbc_url = (
+                        f"jdbc:postgresql://{self._config['host']}:{self._config['port']}/{self._config['database']}"
+                    )                    
+                    obj.select(ls_columns).write.format("jdbc") \
+                        .option("url",jdbc_url) \
+                        .option("driver", "org.postgresql.Driver") \
+                        .option("dbtable", f"{schema}.{tmp_tbl}") \
+                        .option("user", self._config["user"]) \
+                        .option("password", self._config["password"]) \
+                        .mode("overwrite") \
+                        .save()
+                
+                update_columns = [f"{col} = EXCLUDED.{col}" for col in ls_columns if col not in primary_keys]
+                if len(update_columns) >=1:
+                    update_columns_sql = ", ".join(update_columns)
+                    update_command = f"UPDATE SET {update_columns_sql}"
+                else:
+                    update_command = f"NOTHING"
 
+                command = f"""
+                BEGIN TRANSACTION;
+                INSERT INTO {schema}.{table} 
+                SELECT {select_columns_sql} 
+                FROM {schema}.{tmp_tbl}
+                ON CONFLICT ({', '.join(primary_keys)}) 
+                DO {update_command}; 
+                END TRANSACTION;
+                """
+                
                 cursor.execute(text(command))
 
-                # Drop the temporary table
                 cursor.execute(text(f"DROP TABLE IF EXISTS {schema}.{tmp_tbl}"))

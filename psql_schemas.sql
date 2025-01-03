@@ -2,6 +2,7 @@ CREATE SCHEMA IF NOT EXISTS dwh;
 
 DROP TABLE IF EXISTS dwh.reviews CASCADE;
 DROP TABLE IF EXISTS dwh.products_authors CASCADE;
+DROP TABLE IF EXISTS dwh.images_url CASCADE;
 DROP TABLE IF EXISTS dwh.authors CASCADE;
 DROP TABLE IF EXISTS dwh.brands CASCADE;
 DROP TABLE IF EXISTS dwh.sellers CASCADE;
@@ -35,7 +36,7 @@ CREATE TABLE dwh.authors (
     author_id VARCHAR(64) PRIMARY KEY,
     author_name VARCHAR(255)
 );
- 
+
 -- Brands table
 CREATE TABLE dwh.brands (
     brand_id VARCHAR(64) PRIMARY KEY,
@@ -59,7 +60,6 @@ CREATE TABLE dwh.products (
     review_count INT DEFAULT 0,
     day_ago_created INT,
     product_url TEXT,
-    image_urls TEXT,
     is_authentic BOOLEAN DEFAULT FALSE,
     is_freeship_xtra BOOLEAN DEFAULT FALSE,
     is_top_deal BOOLEAN DEFAULT FALSE,
@@ -72,7 +72,9 @@ CREATE TABLE dwh.products (
     FOREIGN KEY (category_id) REFERENCES dwh.categories (category_id),
     FOREIGN KEY (seller_id) REFERENCES dwh.sellers (seller_id),
     FOREIGN KEY (brand_id) REFERENCES dwh.brands (brand_id)
+
 );
+
 
 -- Products-Authors junction table
 CREATE TABLE dwh.products_authors (
@@ -82,6 +84,15 @@ CREATE TABLE dwh.products_authors (
     PRIMARY KEY (product_id, seller_id, author_id),
     FOREIGN KEY (product_id, seller_id) REFERENCES dwh.products (product_id, seller_id),
     FOREIGN KEY (author_id) REFERENCES dwh.authors (author_id)
+);
+
+-- Images URL table
+CREATE TABLE dwh.images_url (
+    product_id VARCHAR(64) NOT NULL,
+    seller_id VARCHAR(64) NOT NULL,
+    image_url TEXT NOT NULL,
+    PRIMARY KEY (product_id, seller_id, image_url),
+    FOREIGN KEY (product_id, seller_id) REFERENCES dwh.products (product_id, seller_id)
 );
 
 -- Users table

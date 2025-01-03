@@ -16,7 +16,9 @@ PSQL_CONFIG = {
 SPARK_CONFIG = {
     "spark.jars": "/usr/local/spark/jars/s3-2.29.43.jar,/usr/local/spark/jars/aws-java-sdk-1.12.780.jar,"
                   "/usr/local/spark/jars/aws-java-sdk-bundle-1.12.262.jar,/usr/local/spark/jars/delta-spark_2.12-3.2.1.jar,"
-                  "/usr/local/spark/jars/delta-storage-3.2.1.jar,/usr/local/spark/jars/hadoop-aws-3.3.4.jar",
+                  "/usr/local/spark/jars/delta-storage-3.2.1.jar,/usr/local/spark/jars/hadoop-aws-3.3.4.jar,"
+                  "/usr/local/spark/jars/postgresql-42.7.4.jar",
+
     "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
     "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
     "spark.hadoop.fs.s3a.endpoint": "http://minio:9000",

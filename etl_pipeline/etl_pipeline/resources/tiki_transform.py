@@ -19,8 +19,8 @@ class TikiTransform(MinIOHandler):
         d['product_sku'] = json.get('sku')
         d['product_name'] = json.get('name')
         d['product_url'] = json.get('short_url')
-        # d['image_urls'] = [image.get('base_url') for image in json.get('images', [])]
-        d['image_urls'] = ', '.join([image.get('base_url', '') for image in json.get('images', [])])
+        d['images_url'] = [image.get('base_url') for image in json.get('images', [])]
+        # d['image_urls'] = ', '.join([image.get('base_url', '') for image in json.get('images', [])])
         d['short_description'] = json.get('short_description')
 
 
@@ -48,8 +48,8 @@ class TikiTransform(MinIOHandler):
         d['brand_name'] = brand.get('name')
         # if book
         authors = json.get('authors', {})
-        d['authors_id'] = [author['id'] for author in authors] #if len(authors) >= 1 else None
-        d['authors_name'] = [author['name'] for author in authors] #if len(authors) >= 1 else None
+        d['authors_id'] = [author['id'] for author in authors] 
+        d['authors_name'] = [author['name'] for author in authors] 
 
 
         d['rating_average'] = json.get('rating_average')

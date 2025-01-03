@@ -1,15 +1,10 @@
 import re
-import pandas as pd
 from dagster import asset, Output, AssetIn
 from etl_pipeline.resources.tiki_transform import TikiTransform
 from etl_pipeline.resources.config import MINIO_CONFIG, SPARK_CONFIG
 from etl_pipeline.resources.spark_io_manager import connect_spark
-
-from pyspark.sql.functions import col, lit, when, from_unixtime
-from pyspark.sql.functions import udf
+from pyspark.sql.functions import col, when, from_unixtime, udf, isnan
 from pyspark.sql.types import IntegerType
-
-
 
 transformer = TikiTransform(MINIO_CONFIG)
 
@@ -94,13 +89,39 @@ def silver_products(silver_sellers):
 
         products_spark_df = products_spark_df.join(silver_sellers.select("seller_id"), on="seller_id", how="inner")
 
+        products_spark_df = products_spark_df.withColumn(
+            "brand_id",
+            when(isnan(col("brand_id")) | col("brand_id").isNull(), 0)
+            .otherwise(col("brand_id"))
+        )
+        products_spark_df = products_spark_df.withColumn(
+            "brand_name",
+            when(isnan(col("brand_name")) | col("brand_name").isNull(), "No Brand")
+            .otherwise(col("brand_name"))
+        )
 
         products_spark_df = products_spark_df.withColumn("warranty_period", convert_warranty_period(col("warranty_period")))
 
-        products_spark_df = products_spark_df.withColumn("warranty_type", when(col("warranty_type").isNull(), "Không bảo hành").otherwise(col("warranty_type")))
-        products_spark_df = products_spark_df.withColumn("warranty_location", when(col("warranty_location").isNull(), "Không bảo hành").otherwise(col("warranty_location")))
-        products_spark_df = products_spark_df.withColumn("return_reason", when(col("return_reason").isNull(), "no_return").otherwise(col("return_reason")))
-        products_spark_df = products_spark_df.withColumn("quantity_sold", when(col("quantity_sold").isNull(), lit(0)).otherwise(col("quantity_sold")))
+        products_spark_df = products_spark_df.withColumn(
+            "warranty_type",
+            when(isnan(col("warranty_type")) | col("warranty_type").isNull(), "Không bảo hành")
+            .otherwise(col("warranty_type"))
+        )
+
+        products_spark_df = products_spark_df.withColumn(
+            "warranty_location",
+            when(isnan(col("warranty_location")) | col("warranty_location").isNull(), "Không bảo hành")
+            .otherwise(col("warranty_location"))
+        )
+        products_spark_df = products_spark_df.withColumn(
+            "return_reason",
+            when(col("return_reason") == "any_reason", "Bất cứ lý do gì")
+            .when(col("return_reason") == "defective_product", "Sản phẩm hư hỏng")
+            .when((col("return_reason") == "no_return") | col("return_reason").isNull(), "Không đổi trả")
+            .otherwise(col("return_reason"))
+        )
+        products_spark_df = products_spark_df.fillna(0, subset=["quantity_sold"])
+
 
     return Output(
         products_spark_df,
@@ -136,6 +157,12 @@ def silver_reviews(silver_products):
         reviews_spark_df = reviews_spark_df.withColumn("created_at", from_unixtime(col("created_at")).cast("timestamp"))
         reviews_spark_df = reviews_spark_df.withColumn("purchased_at", from_unixtime(col("purchased_at")).cast("timestamp"))
         reviews_spark_df = reviews_spark_df.withColumn("joined_day", convert_to_days(col("joined_time")))
+        reviews_spark_df = reviews_spark_df.withColumn("total_review",
+            when(isnan(col("total_review")) | col("total_review").isNull(), 0).otherwise(col("total_review"))
+        )
+        reviews_spark_df = reviews_spark_df.withColumn("total_thank",
+            when(isnan(col("total_thank")) | col("total_thank").isNull(), 0).otherwise(col("total_thank"))
+        )
     return Output(
         reviews_spark_df,
         metadata={
