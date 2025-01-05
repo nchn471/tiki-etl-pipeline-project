@@ -13,3 +13,4 @@ dagster_home/.telemetry/
 dagster_home/compute_logs/
 dagster_home/logs
 tmp/
+*.jar

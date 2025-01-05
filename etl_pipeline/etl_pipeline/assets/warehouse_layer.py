@@ -51,10 +51,12 @@ def dwh_categories(silver_categories) :
                     "total_follower",
                     "days_since_joined",
                     "is_official",
+                    "store_level"
                 ],
             },
         )
     },
+    
     group_name="warehouse_layer",
     compute_kind="PostgreSQL",
 )
