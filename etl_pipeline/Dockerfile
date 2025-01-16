@@ -26,7 +26,7 @@ RUN apt-get update \
 #     && mv postgresql-42.7.4.jar /usr/local/spark/jars/postgresql-42.7.4.jar
 
 RUN mkdir -p /usr/local/spark/jars  
-COPY ./*.jar /usr/local/spark/jars
+COPY jars/ /usr/local/spark/jars
 
 
 

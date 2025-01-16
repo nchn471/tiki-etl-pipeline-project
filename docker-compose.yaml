@@ -4,7 +4,7 @@ services:
     image: postgres:15
     container_name: de_psql
     volumes:
-      - ./postgresql:/var/lib/postgresql/data
+      - ./mnt/postgresql:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     env_file:
@@ -25,7 +25,7 @@ services:
       - --console-address
       - ":9001"
     volumes:
-      - ./minio:/data
+      - ./mnt/minio:/data
     env_file:
       - env
     networks:
@@ -54,7 +54,7 @@ services:
 
   de_dagster:
     build:
-      context: ./dagster/
+      context: ./docker_images/dagster
     container_name: de_dagster
     image: de_dagster
 
@@ -97,7 +97,7 @@ services:
 
   spark_master:
     build:
-      context: ./spark
+      context: ./docker_images/spark
       dockerfile: ./Dockerfile
     container_name: spark_master
     hostname: spark-master
@@ -112,7 +112,7 @@ services:
       - '7077:7077'
       - '8080:8080'
     volumes:
-      - ./spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+      - ./docker_images/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
     networks:
       - de_network
 
@@ -134,7 +134,7 @@ services:
 
   spark_notebook:
     build:
-      context: ./spark_notebook
+      context: ./docker_images/spark_notebook
       dockerfile: ./Dockerfile
     container_name: spark_notebook
     user: root
@@ -143,8 +143,8 @@ services:
       - JUPYTER_ENABLE_LAB="yes"
       - GRANT_SUDO="yes"
     volumes:
-      - ./spark_notebook:/home/jovyan/work
-      - ./spark_notebook/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
+      - ./docker_images/spark_notebook:/home/jovyan/work
+      - ./docker_images/spark_notebook/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
     ports:
       - "8888:8888"
       - "4040:4040"
@@ -165,15 +165,29 @@ services:
       - de_network
 
   de_metabase:
-      image: metabase/metabase:v0.52.4.4
-      container_name: de_metabase
-      volumes:
-        - ./metabase:/metabase_data
-      ports:
-        - "3000:3000"
-      env_file: env
-      networks:
-        - de_network
+    image: metabase/metabase:v0.52.4.4
+    container_name: de_metabase
+    volumes:
+      - ./mnt/metabase:/metabase_data
+    ports:
+      - "3000:3000"
+    env_file: env
+    networks:
+      - de_network
+
+  de_streamlit:
+    build:
+      context: ./docker_images/streamlit
+      dockerfile: ./Dockerfile
+    image: de_streamlit:latest
+    container_name: de_streamlit
+    volumes:
+      - ./docker_images/streamlit/app:/app
+    ports:
+      - "8501:8501"
+    networks:
+      - de_network
+
 
 networks:
   de_network:

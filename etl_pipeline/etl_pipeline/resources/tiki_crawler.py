@@ -1,14 +1,19 @@
 import requests
 import time
+import os
 import random
-import json
 import pandas as pd
 import urllib.request
-import os
+import pandas as pd
+import threading
+import queue
 
-from bs4 import BeautifulSoup
 from tqdm import tqdm
+from bs4 import BeautifulSoup
+from collections import deque
 from etl_pipeline.resources.minio_io_manager import MinIOHandler, connect_minio
+from minio.error import S3Error
+
 
 # Headers để fake User-Agent
 headers = {
@@ -49,6 +54,7 @@ params = {
 
 
 base_urls = {
+    "base_url" : "https://tiki.vn",
     "base_page_url" : "https://tiki.vn/api/personalish/v1/blocks/listings",
     "base_product_url" : "https://tiki.vn/api/v2/products/{}",
     "base_reviews_url" : "https://tiki.vn/api/v2/reviews",
@@ -63,6 +69,7 @@ class TikiCrawler(MinIOHandler):
         self.tmp_dir = tmp_dir
         self.root_dir = root_dir
 
+        self.base_url = base_urls["base_url"]
         self.base_page_url = base_urls["base_page_url"]
         self.base_product_url = base_urls["base_product_url"]
         self.base_reviews_url = base_urls["base_reviews_url"]
@@ -97,21 +104,33 @@ class TikiCrawler(MinIOHandler):
         self.tracking_ids_df = pd.concat([self.tracking_ids_df, new_id_df], ignore_index=True)
         self.put_file_to_minio(self.tracking_ids_df,self.tracking_ids_path,file_type= "csv")
 
-    def download_html(self, url):
-        with urllib.request.urlopen(url) as response:
-            html = response.read().decode('utf-8')
-        return html
+
     
     def fetch_categories(self, path):
-        source = self.download_html("https://tiki.vn")
-        soup = BeautifulSoup(source, 'html.parser')
-        cat = soup.find('div', {'class': 'styles__StyledListItem-sc-w7gnxl-0 cjqkgR'})
-        sub_cats = cat.find_all('a', {'title': True})
-        result = [{'title': sub_cat['title'], 'href': sub_cat['href']} for sub_cat in sub_cats]
-        df = pd.DataFrame(result)
-        df[['slug', 'category_id']] = df['href'].str.extract(r'/([^/]+)/c(\d+)')
-        df.drop(columns = ['href'], inplace=True)
-        self.put_file_to_minio(df,path,file_type="csv")
+
+        def download_html(url):
+            with urllib.request.urlopen(url) as response:
+                html = response.read().decode('utf-8')
+            return html
+
+        with connect_minio(self.minio_config) as client:
+
+            minio_path = os.path.join(self.root_dir, self.categories_path)
+
+            try:
+                client.stat_object(self.minio_config["bucket"], minio_path)
+                df = self.get_file_from_minio(self.categories_path, file_type="csv")
+
+            except S3Error:
+                source = download_html(self.base_url)
+                soup = BeautifulSoup(source, 'html.parser')
+                cat = soup.find('div', {'class': 'styles__StyledListItem-sc-w7gnxl-0 cjqkgR'})
+                sub_cats = cat.find_all('a', {'title': True})
+                result = [{'title': sub_cat['title'], 'href': sub_cat['href']} for sub_cat in sub_cats]
+                df = pd.DataFrame(result)
+                df[['slug', 'category_id']] = df['href'].str.extract(r'/([^/]+)/c(\d+)')
+                df.drop(columns = ['href'], inplace=True)
+                self.put_file_to_minio(df,path,file_type="csv")
 
         return df
     
@@ -218,7 +237,9 @@ class TikiCrawler(MinIOHandler):
         return products
     
     def scrape_all(self, page = 10):
-        for _, category in self.categories_df.iterrows():
+        categories_level_0 = self.categories_df[self.categories_df['level'] == 0]
+
+        for _, category in categories_level_0.iterrows():
             urlKey = category['slug']
             cat_id = category['category_id']
             self.scrape_all_category(urlKey, cat_id, page)

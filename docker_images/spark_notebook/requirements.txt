@@ -1,0 +1,3 @@
+gensim
+underthesea
+jupyterlab_darkside_theme

@@ -4,9 +4,9 @@ DROP TABLE IF EXISTS dwh.reviews CASCADE;
 DROP TABLE IF EXISTS dwh.products_authors CASCADE;
 DROP TABLE IF EXISTS dwh.images_url CASCADE;
 DROP TABLE IF EXISTS dwh.authors CASCADE;
+DROP TABLE IF EXISTS dwh.products CASCADE;
 DROP TABLE IF EXISTS dwh.brands CASCADE;
 DROP TABLE IF EXISTS dwh.sellers CASCADE;
-DROP TABLE IF EXISTS dwh.products CASCADE;
 DROP TABLE IF EXISTS dwh.categories CASCADE;
 DROP TABLE IF EXISTS dwh.users CASCADE;
 
@@ -50,7 +50,9 @@ CREATE TABLE dwh.products (
     category_id VARCHAR(64),
     brand_id VARCHAR(64),
     product_name TEXT,
-    short_description TEXT,
+    description TEXT,
+    specifications TEXT,
+    breadcrumbs TEXT,
     original_price DECIMAL(15, 2),
     discount DECIMAL(15, 2) DEFAULT 0,
     price DECIMAL(15, 2),

@@ -35,8 +35,8 @@ from pyspark.sql.functions import col, explode
 def transform_silver_products(silver_products):
 
     select_columns = [
-        'category_id', 'product_id', 'seller_id', 'brand_id', 'product_name', 'short_description',
-        'original_price', 'discount', 'price', 'discount_rate', 'quantity_sold', 'rating_average', 
+        'category_id', 'product_id', 'seller_id', 'brand_id', 'product_name', 'description','specifications',
+        'breadcrumbs','original_price', 'discount', 'price', 'discount_rate', 'quantity_sold', 'rating_average',
         'review_count', 'day_ago_created', 'product_url', 'is_authentic', 'is_freeship_xtra',
         'is_top_deal', 'return_reason', 'inventory_type', 'warranty_period', 'warranty_type', 'warranty_location'
     ]

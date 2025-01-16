@@ -3,6 +3,7 @@ FROM bitnami/spark:3.5.0
 USER root
 
 RUN apt-get update && apt-get install -y curl
+RUN pip install underthesea
 
 RUN curl -O https://repo1.maven.org/maven2/software/amazon/awssdk/s3/2.29.43/s3-2.29.43.jar \
     && curl -O https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk/1.12.780/aws-java-sdk-1.12.780.jar \

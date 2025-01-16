@@ -1,7 +1,10 @@
 FROM jupyter/all-spark-notebook:python-3.11
 
-USER root 
-
+COPY requirements.txt .
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt --index-url https://mirrors.aliyun.com/pypi/simple/
+    
+# USER root 
 # RUN wget https://dlcdn.apache.org/spark/spark-3.5.4/spark-3.5.4-bin-hadcpoop3.tgz \
 #     && tar zxvf spark-3.5.4-bin-hadoop3.tgz \
 #     && rm -rf spark-3.5.4-bin-hadoop3.tgz \
@@ -25,7 +28,4 @@ USER root
 #     && mv hadoop-aws-3.3.4.jar /usr/local/spark/jars \
 #     && mv postgresql-42.7.4.jar /usr/local/spark/jars/postgresql-42.7.4.jar
 
-COPY ./*.jar /usr/local/spark/jars
-
-
-RUN pip install jupyterlab_darkside_theme
+COPY /jars/ /usr/local/spark/jars

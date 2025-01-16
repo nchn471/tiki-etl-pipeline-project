@@ -6,7 +6,6 @@ from etl_pipeline.resources.spark_io_manager import connect_spark
 from pyspark.sql.functions import col, when, from_unixtime, udf, isnan
 from pyspark.sql.types import IntegerType
 
-transformer = TikiTransform(MINIO_CONFIG)
 
 @udf(IntegerType())
 def convert_warranty_period(warranty):
@@ -54,6 +53,7 @@ def convert_to_days(joined_time):
     compute_kind="PySpark"
 )
 def silver_sellers():
+    transformer = TikiTransform(MINIO_CONFIG)
     sellers_df = transformer.transform_data(type = "sellers")
     with connect_spark(SPARK_CONFIG) as spark:
         spark_df = spark.createDataFrame(sellers_df)
@@ -80,7 +80,7 @@ def silver_sellers():
     compute_kind="PySpark"
 )
 def silver_products(silver_sellers):
-
+    transformer = TikiTransform(MINIO_CONFIG)
     products_df = transformer.transform_data()
     with connect_spark(SPARK_CONFIG) as spark:
         products_spark_df = spark.createDataFrame(products_df)
@@ -145,6 +145,7 @@ def silver_products(silver_sellers):
     compute_kind="PySpark"
 )
 def silver_reviews(silver_products):
+    transformer = TikiTransform(MINIO_CONFIG)
     reviews_df = transformer.transform_data(type = "reviews")
     with connect_spark(SPARK_CONFIG) as spark:
         reviews_spark_df = spark.createDataFrame(reviews_df)
@@ -178,7 +179,8 @@ def silver_reviews(silver_products):
     compute_kind="MinIO"
 )
 def silver_categories():
-    cagoteries = transformer.categories_df
+    transformer = TikiTransform(MINIO_CONFIG)
+    cagoteries = transformer.get_categories()
     return Output(
         cagoteries,
         metadata={

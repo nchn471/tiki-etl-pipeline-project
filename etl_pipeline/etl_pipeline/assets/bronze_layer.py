@@ -9,7 +9,7 @@ from etl_pipeline.resources.config import MINIO_CONFIG
 )
 def bronze_raw_dataset():
     crawler = TikiCrawler(MINIO_CONFIG)
-
+    # crawler.scrape_all()
     products_each_cat, total_products = crawler.num_products()
     metadata = {"total products": total_products}
     for category_data in products_each_cat:

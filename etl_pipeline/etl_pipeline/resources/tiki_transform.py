@@ -3,14 +3,13 @@ import pandas as pd
 from etl_pipeline.resources.minio_io_manager import MinIOHandler, connect_minio
 
 class TikiTransform(MinIOHandler):
+
     def __init__(self,minio_config,root_dir = "bronze/tiki/", tmp_dir = "./tmp"):
         super().__init__(minio_config, tmp_dir, root_dir)
 
         self.root_dir = root_dir
         self.minio_config = minio_config
 
-        categories_path = "categories.csv"
-        self.categories_df = self.get_file_from_minio(categories_path,file_type="csv")
 
     @staticmethod
     def product_parser(json):
@@ -20,10 +19,21 @@ class TikiTransform(MinIOHandler):
         d['product_name'] = json.get('name')
         d['product_url'] = json.get('short_url')
         d['images_url'] = [image.get('base_url') for image in json.get('images', [])]
-        # d['image_urls'] = ', '.join([image.get('base_url', '') for image in json.get('images', [])])
-        d['short_description'] = json.get('short_description')
 
+        description = json.get('description')
+        d['description'] = re.sub('<[^<]+?>', '', description)
+        specifications = json.get('specifications', [])
+        key_value_pairs = []
 
+        for specification in specifications:            
+            for attribute in specification.get('attributes', []):
+                key_value_pairs.append(f"{attribute.get('name', '')}: {attribute.get('value', '')}")
+
+        d['specifications'] = '\n'.join(key_value_pairs)
+        breadcrumbs = json.get('breadcrumbs',[])
+        breadcrumbs_str = " / ".join([breadcrumb.get('name') for breadcrumb in breadcrumbs[:-1]])
+        d['category_id'] = breadcrumbs[0].get('category_id')
+        d['breadcrumbs'] = breadcrumbs_str
         # Price field
         d['original_price'] = json.get('list_price')
         d['discount'] = json.get('discount')
@@ -141,7 +151,11 @@ class TikiTransform(MinIOHandler):
         except Exception as e:
             print(f"Error in JSON: {file_path}: {e}")
             return None
-        
+
+    def get_categories(self, path = "categories.csv"):
+        categories_df = self.get_file_from_minio(path,file_type="csv")
+        return categories_df
+    
     def transform_data(self, type="products"):
         type_map = {
             "products": (r'product.*\.json', self.product_parser),
@@ -173,10 +187,13 @@ class TikiTransform(MinIOHandler):
                 elif re.match(pattern, path_parts[-1]):
                     parsed_data = self.parse_json(obj.object_name,parser_func)
                     if parsed_data:
-                        if type == "products":
-                            category_map = dict(zip(self.categories_df['slug'], self.categories_df['category_id']))
-                            category_name = path_parts[0] if len(path_parts) > 0 else None
-                            parsed_data['category_id'] = category_map.get(category_name, None)
+                        # if type == "products":
+                            # category_map = dict(zip(self.categories_df['slug'], self.categories_df['category_id']))
+                            # category_name = path_parts[0] if len(path_parts) > 0 else None
+                            # parsed_data['category_id'] = category_map.get(category_name, None)
                         all_data.append(parsed_data)
 
         return pd.DataFrame(all_data)
+    
+
+
