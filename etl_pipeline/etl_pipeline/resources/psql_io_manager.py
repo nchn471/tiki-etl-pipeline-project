@@ -26,6 +26,8 @@ class PostgreSQLIOManager(IOManager):
     
     def handle_output(self, context: OutputContext, obj: pd.DataFrame):
         schema, table = context.asset_key.path[-2], context.asset_key.path[-1]
+        table = table.replace(f"{schema}_", "")
+
         tmp_tbl = f"{table}_tmp_{datetime.now().strftime('%Y_%m_%d')}"
 
         with connect_psql(self._config) as db_conn:

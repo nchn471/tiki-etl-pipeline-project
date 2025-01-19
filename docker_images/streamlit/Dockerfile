@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.11.8-slim
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt .
 
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt --index-url https://mirrors.aliyun.com/pypi/simple/
 
 COPY app/ .
 

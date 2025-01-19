@@ -35,7 +35,11 @@ class SparkIOManager(IOManager):
         file_path = self._get_path(context)
         try:
             context.log.info("Handle Output Spark")
-            obj.write.mode("overwrite").parquet(file_path)
+            if obj:
+                obj.write.mode("overwrite").parquet(file_path)
+            else:
+                context.log.info("No Output!")
+
         except Exception:
             raise 
 
@@ -49,3 +53,4 @@ class SparkIOManager(IOManager):
                 return df
         except Exception:
             raise
+        

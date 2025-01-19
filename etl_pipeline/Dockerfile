@@ -2,11 +2,12 @@ FROM python:3.11.8-slim
 
 WORKDIR /opt/dagster/app
 COPY requirements.txt /opt/dagster/app
-RUN apt-get update \
-    # && apt-get install -y curl \
-    && apt-get install -y openjdk-17-jdk \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* \
-    && pip install --upgrade pip \
+COPY vietnamese-stopwords.txt .
+RUN apt update -y \
+    && apt install -y openjdk-17-jdk \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* 
+
+RUN pip install --upgrade pip \
     && pip install -r requirements.txt --index-url https://mirrors.aliyun.com/pypi/simple/
 
 # RUN curl -O https://repo1.maven.org/maven2/software/amazon/awssdk/s3/2.29.43/s3-2.29.43.jar \

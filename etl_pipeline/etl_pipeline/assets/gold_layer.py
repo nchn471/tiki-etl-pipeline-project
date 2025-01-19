@@ -35,8 +35,8 @@ from pyspark.sql.functions import col, explode
 def transform_silver_products(silver_products):
 
     select_columns = [
-        'category_id', 'product_id', 'seller_id', 'brand_id', 'product_name', 'description','specifications',
-        'breadcrumbs','original_price', 'discount', 'price', 'discount_rate', 'quantity_sold', 'rating_average',
+        'category_id', 'product_id', 'seller_id', 'brand_id', 'product_name', 'description', 'specifications',
+        'breadcrumbs', 'original_price', 'discount', 'price', 'discount_rate', 'quantity_sold', 'rating_average',
         'review_count', 'day_ago_created', 'product_url', 'is_authentic', 'is_freeship_xtra',
         'is_top_deal', 'return_reason', 'inventory_type', 'warranty_period', 'warranty_type', 'warranty_location'
     ]
@@ -48,16 +48,22 @@ def transform_silver_products(silver_products):
         col("seller_id"),
         explode(col("images_url")).alias("image_url")
     )
-    exploded_authors = silver_products.withColumn("author_id", explode(col("authors_id"))) \
-                                      .withColumn("author_name", explode(col("authors_name")))
 
-    gold_authors = exploded_authors.select("author_id", "author_name") \
-                                   .drop_duplicates(["author_id"]) \
-                                   .dropna()
+    exploded_authors = silver_products.withColumn("author", explode(col("authors"))) \
+                                      .select(
+                                          col("author._1").alias("author_id"),
+                                          col("author._2").alias("author_name")
+                                      )
 
-    product_author_pairs = silver_products.withColumn("author_id", explode(col("authors_id"))) \
-                                          .withColumn("author_name", explode(col("authors_name"))) \
-                                          .select("product_id", "seller_id", "author_id")
+    gold_authors = exploded_authors.drop_duplicates(["author_id"]).dropna()
+
+    product_author_pairs = silver_products.withColumn("author", explode(col("authors"))) \
+                                          .select(
+                                              col("product_id"),
+                                              col("seller_id"),
+                                              col("author._1").alias("author_id")
+                                          )
+
     gold_products_authors = product_author_pairs.drop_duplicates()
 
     gold_brands = silver_products.select("brand_id", "brand_name") \

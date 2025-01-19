@@ -5,7 +5,7 @@ from dagster import multi_asset, Output, AssetIn, AssetOut
         "silver_categories": AssetIn(key_prefix=["silver", "tiki"]),
     },
     outs={
-        "categories": AssetOut(
+        "dwh_categories": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -36,7 +36,7 @@ def dwh_categories(silver_categories) :
         "silver_sellers": AssetIn(key_prefix=["silver", "tiki"]),
     },
     outs={
-        "sellers": AssetOut(
+        "dwh_sellers": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -75,7 +75,7 @@ def dwh_sellers(silver_sellers) :
         "gold_authors": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
-        "authors": AssetOut(
+        "dwh_authors": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -105,7 +105,7 @@ def dwh_authors(gold_authors) :
         "gold_products_authors": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
-        "products_authors": AssetOut(
+        "dwh_products_authors": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -140,7 +140,7 @@ def dwh_products_authors(gold_products_authors) :
         "gold_images_url": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
-        "images_url": AssetOut(
+        "dwh_images_url": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -176,7 +176,7 @@ def dwh_images_url(gold_images_url) :
         "gold_brands": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
-        "brands": AssetOut(
+        "dwh_brands": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -208,7 +208,7 @@ def dwh_brands(gold_brands) :
         "gold_products": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
-        "products": AssetOut(
+        "dwh_products": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -264,7 +264,7 @@ def dwh_products(gold_products) :
         "gold_reviews": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
-        "reviews": AssetOut(
+        "dwh_reviews": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={
@@ -303,7 +303,7 @@ def dwh_reviews(context, gold_reviews) :
         "gold_users": AssetIn(key_prefix=["gold", "tiki"]),
     },
     outs={
-        "users": AssetOut(
+        "dwh_users": AssetOut(
             io_manager_key="psql_io_manager",
             key_prefix=["postgres", "dwh"],
             metadata={

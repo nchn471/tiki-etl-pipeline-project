@@ -1,0 +1,2 @@
+underthesea==6.8.4
+gensim==4.3.3

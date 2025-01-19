@@ -52,117 +52,120 @@ services:
     networks:
       - de_network
 
-  de_dagster:
-    build:
-      context: ./docker_images/dagster
-    container_name: de_dagster
-    image: de_dagster
+  # de_dagster:
+  #   build:
+  #     context: ./docker_images/dagster
+  #   container_name: de_dagster
+  #   image: de_dagster
 
-  de_dagster_dagit:
-    image: de_dagster:latest
-    entrypoint:
-      - dagit
-      - -h
-      - "0.0.0.0"
-      - -p
-      - "3001"
-      - -w
-      - workspace.yaml
-    container_name: de_dagster_dagit
-    expose:
-      - "3001"
-    ports:
-      - "3001:3001"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./dagster_home:/opt/dagster/dagster_home
-    env_file:
-      - env
-    networks:
-      - de_network
+  # de_dagster_dagit:
+  #   image: de_dagster:latest
+  #   entrypoint:
+  #     - dagit
+  #     - -h
+  #     - "0.0.0.0"
+  #     - -p
+  #     - "3001"
+  #     - -w
+  #     - workspace.yaml
+  #   container_name: de_dagster_dagit
+  #   expose:
+  #     - "3001"
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./dagster_home:/opt/dagster/dagster_home
+  #   env_file:
+  #     - env
+  #   networks:
+  #     - de_network
 
-  de_dagster_daemon:
-    image: de_dagster:latest
-    entrypoint:
-      - dagster-daemon
-      - run
-    container_name: de_dagster_daemon
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./dagster_home:/opt/dagster/dagster_home
-    env_file:
-      - env
-    networks:
-      - de_network
+  # de_dagster_daemon:
+  #   image: de_dagster:latest
+  #   entrypoint:
+  #     - dagster-daemon
+  #     - run
+  #   container_name: de_dagster_daemon
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./dagster_home:/opt/dagster/dagster_home
+  #   env_file:
+  #     - env
+  #   networks:
+  #     - de_network
 
-  spark_master:
-    build:
-      context: ./docker_images/spark
-      dockerfile: ./Dockerfile
-    container_name: spark_master
-    hostname: spark-master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_LOCAL_IP=spark-master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-    ports:
-      - '7077:7077'
-      - '8080:8080'
-    volumes:
-      - ./docker_images/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
-    networks:
-      - de_network
+  # spark_master:
+  #   build:
+  #     context: ./docker_images/spark
+  #     dockerfile: ./Dockerfile
+  #   container_name: spark_master
+  #   hostname: spark-master
+  #   environment:
+  #     - SPARK_MODE=master
+  #     - SPARK_LOCAL_IP=spark-master
+  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
+  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
+  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+  #     - SPARK_SSL_ENABLED=no
+  #   ports:
+  #     - '7077:7077'
+  #     - '8080:8080'
+  #   volumes:
+  #     - ./docker_images/spark/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+  #   networks:
+  #     - de_network
 
-  spark_worker:
-    image: bitnami/spark:3.5.0
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=1
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-    deploy:
-      replicas: 2
-    networks:
-      - de_network
+  # spark_worker:
+  #   # image: bitnami/spark:3.5.0
+  #   build:
+  #     context: ./docker_images/spark
+  #     dockerfile: ./Dockerfile
+  #   environment:
+  #     - SPARK_MODE=worker
+  #     - SPARK_MASTER_URL=spark://spark-master:7077
+  #     - SPARK_WORKER_MEMORY=1G
+  #     - SPARK_WORKER_CORES=1
+  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
+  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
+  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+  #     - SPARK_SSL_ENABLED=no
+  #   deploy:
+  #     replicas: 2
+  #   networks:
+  #     - de_network
 
-  spark_notebook:
-    build:
-      context: ./docker_images/spark_notebook
-      dockerfile: ./Dockerfile
-    container_name: spark_notebook
-    user: root
+  # spark_notebook:
+  #   build:
+  #     context: ./docker_images/spark_notebook
+  #     dockerfile: ./Dockerfile
+  #   container_name: spark_notebook
+  #   user: root
 
-    environment:
-      - JUPYTER_ENABLE_LAB="yes"
-      - GRANT_SUDO="yes"
-    volumes:
-      - ./docker_images/spark_notebook:/home/jovyan/work
-      - ./docker_images/spark_notebook/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
-    ports:
-      - "8888:8888"
-      - "4040:4040"
-    networks:
-      - de_network
+  #   environment:
+  #     - JUPYTER_ENABLE_LAB="yes"
+  #     - GRANT_SUDO="yes"
+  #   volumes:
+  #     - ./docker_images/spark_notebook:/home/jovyan/work
+  #     - ./docker_images/spark_notebook/spark-defaults.conf:/usr/local/spark/conf/spark-defaults.conf
+  #   ports:
+  #     - "8888:8888"
+  #     - "4040:4040"
+  #   networks:
+  #     - de_network
 
-  etl_pipeline:
-    build:
-      context: ./etl_pipeline
-      dockerfile: ./Dockerfile
-    container_name: etl_pipeline
-    image: etl_pipeline:latest
-    volumes:
-      - ./etl_pipeline:/opt/dagster/app
-    env_file:
-      - env
-    networks:
-      - de_network
+  # etl_pipeline:
+  #   build:
+  #     context: ./etl_pipeline
+  #     dockerfile: ./Dockerfile
+  #   container_name: etl_pipeline
+  #   image: etl_pipeline:latest
+  #   volumes:
+  #     - ./etl_pipeline:/opt/dagster/app
+  #   env_file:
+  #     - env
+  #   networks:
+      # - de_network
 
   de_metabase:
     image: metabase/metabase:v0.52.4.4

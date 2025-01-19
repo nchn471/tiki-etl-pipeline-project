@@ -6,9 +6,11 @@ from etl_pipeline.resources.spark_io_manager import SparkIOManager
 from etl_pipeline.assets import bronze_layer 
 from etl_pipeline.assets import silver_layer
 from etl_pipeline.assets import gold_layer 
+from etl_pipeline.assets import recommendation_layer
 from etl_pipeline.assets import warehouse_layer
 from etl_pipeline.resources.config import *
-all_assets = load_assets_from_modules([bronze_layer,silver_layer, gold_layer,warehouse_layer])
+
+all_assets = load_assets_from_modules([bronze_layer,silver_layer, gold_layer,recommendation_layer,warehouse_layer])
 
 defs = Definitions(
     assets= all_assets,

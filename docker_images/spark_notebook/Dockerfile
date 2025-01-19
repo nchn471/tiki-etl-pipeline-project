@@ -4,7 +4,8 @@ COPY requirements.txt .
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt --index-url https://mirrors.aliyun.com/pypi/simple/
     
-# USER root 
+USER root 
+
 # RUN wget https://dlcdn.apache.org/spark/spark-3.5.4/spark-3.5.4-bin-hadcpoop3.tgz \
 #     && tar zxvf spark-3.5.4-bin-hadoop3.tgz \
 #     && rm -rf spark-3.5.4-bin-hadoop3.tgz \

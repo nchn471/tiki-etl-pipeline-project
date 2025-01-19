@@ -115,31 +115,3 @@ class MinIOHandler:
             print(f"Failed to get file from Minio at {path}: {e}")
             raise
 
-    def get_parquet_from_minio(self, path, file_type):
-        try:
-            tmp_file_path = os.path.join(self.tmp_dir, path)
-            os.makedirs(os.path.dirname(tmp_file_path), exist_ok=True)
-
-            with connect_minio(self.minio_config) as client:
-                if not path.startswith(self.root_dir):
-                    minio_path = os.path.join(self.root_dir, path)
-                else:
-                    minio_path = path
-
-                client.fget_object(self.minio_config["bucket"], minio_path, tmp_file_path)
-                
-                if file_type == "json":
-                    with open(tmp_file_path, "r", encoding="utf-8") as f:
-                        data = json.load(f)  
-                elif file_type == "csv":
-                    data = pd.read_parquet(tmp_file_path, engine= "pyarrow")  
-
-                else:
-                    raise ValueError(f"Unsupported file type: {file_type}")
-
-                os.remove(tmp_file_path)
-                return data  
-            
-        except Exception as e:
-            print(f"Failed to get file from Minio at {path}: {e}")
-            raise

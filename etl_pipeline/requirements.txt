@@ -7,3 +7,5 @@ SQLAlchemy==2.0.36
 bs4==0.0.2
 pyarrow==18.1.0
 pyspark==3.5.0
+underthesea==6.8.4
+gensim==4.3.3
