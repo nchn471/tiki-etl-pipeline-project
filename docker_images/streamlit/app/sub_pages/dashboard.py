@@ -19,3 +19,4 @@ iframeUrl = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=t
 
 def show_dashboard():
     components.iframe(iframeUrl, width=1400, height=2000, scrolling=True)
+    # st.image("https://raw.githubusercontent.com/nchn471/tiki-etl-pipeline-project/refs/heads/main/wordcloud.png?token=GHSAT0AAAAAAC3F4FSP6BQAFQZ3LS7GMB24Z4MTRJA")

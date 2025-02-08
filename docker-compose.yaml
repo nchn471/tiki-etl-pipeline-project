@@ -52,48 +52,48 @@ services:
     networks:
       - de_network
 
-  # de_dagster:
-  #   build:
-  #     context: ./docker_images/dagster
-  #   container_name: de_dagster
-  #   image: de_dagster
+  de_dagster:
+    build:
+      context: ./docker_images/dagster
+    container_name: de_dagster
+    image: de_dagster
 
-  # de_dagster_dagit:
-  #   image: de_dagster:latest
-  #   entrypoint:
-  #     - dagit
-  #     - -h
-  #     - "0.0.0.0"
-  #     - -p
-  #     - "3001"
-  #     - -w
-  #     - workspace.yaml
-  #   container_name: de_dagster_dagit
-  #   expose:
-  #     - "3001"
-  #   ports:
-  #     - "3001:3001"
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - ./dagster_home:/opt/dagster/dagster_home
-  #   env_file:
-  #     - env
-  #   networks:
-  #     - de_network
+  de_dagster_dagit:
+    image: de_dagster:latest
+    entrypoint:
+      - dagit
+      - -h
+      - "0.0.0.0"
+      - -p
+      - "3001"
+      - -w
+      - workspace.yaml
+    container_name: de_dagster_dagit
+    expose:
+      - "3001"
+    ports:
+      - "3001:3001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./dagster_home:/opt/dagster/dagster_home
+    env_file:
+      - env
+    networks:
+      - de_network
 
-  # de_dagster_daemon:
-  #   image: de_dagster:latest
-  #   entrypoint:
-  #     - dagster-daemon
-  #     - run
-  #   container_name: de_dagster_daemon
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - ./dagster_home:/opt/dagster/dagster_home
-  #   env_file:
-  #     - env
-  #   networks:
-  #     - de_network
+  de_dagster_daemon:
+    image: de_dagster:latest
+    entrypoint:
+      - dagster-daemon
+      - run
+    container_name: de_dagster_daemon
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./dagster_home:/opt/dagster/dagster_home
+    env_file:
+      - env
+    networks:
+      - de_network
 
   # spark_master:
   #   build:
@@ -154,18 +154,18 @@ services:
   #   networks:
   #     - de_network
 
-  # etl_pipeline:
-  #   build:
-  #     context: ./etl_pipeline
-  #     dockerfile: ./Dockerfile
-  #   container_name: etl_pipeline
-  #   image: etl_pipeline:latest
-  #   volumes:
-  #     - ./etl_pipeline:/opt/dagster/app
-  #   env_file:
-  #     - env
-  #   networks:
-      # - de_network
+  etl_pipeline:
+    build:
+      context: ./etl_pipeline
+      dockerfile: ./Dockerfile
+    container_name: etl_pipeline
+    image: etl_pipeline:latest
+    volumes:
+      - ./etl_pipeline:/opt/dagster/app
+    env_file:
+      - env
+    networks:
+      - de_network
 
   de_metabase:
     image: metabase/metabase:v0.52.4.4
