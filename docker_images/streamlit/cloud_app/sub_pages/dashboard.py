@@ -25,8 +25,8 @@ def show_dashboard():
     tab1_path = "docker_images/streamlit/cloud_app/assets/dashboard/tab1.pdf"
     tab2_path = "docker_images/streamlit/cloud_app/assets/dashboard/tab2.pdf"
     tab3_path = "docker_images/streamlit/cloud_app/assets/dashboard/tab3.pdf"
-
-    tab1, tab2, tab3 = st.tabs(["Tab 1", "Tab 2", "Tab 3"])
+    st.info("ℹ️ This dashboard is exported from Metabase. It may not provide the best experience.")
+    tab1, tab2, tab3 = st.tabs(["Overview", "Product", "Seller"])
     with tab1:
         pdf_viewer(tab1_path)
     with tab2:
