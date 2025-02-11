@@ -23,8 +23,8 @@ def show_dashboard():
     )
     
     tab1_path = "docker_images/streamlit/cloud_app/assets/dashboard/tab1.pdf"
-    tab2_path = "assets/dashboard/tab2.pdf"
-    tab3_path = "assets/dashboard/tab3.pdf"
+    tab2_path = "docker_images/streamlit/cloud_app/assets/dashboard/tab2.pdf"
+    tab3_path = "docker_images/streamlit/cloud_app/assets/dashboard/tab3.pdf"
 
     tab1, tab2, tab3 = st.tabs(["Tab 1", "Tab 2", "Tab 3"])
     with tab1:

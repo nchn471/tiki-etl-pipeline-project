@@ -329,7 +329,7 @@ def load_parquet(path):
 
 @st.cache_data
 def load_tfidf():
-    content_based_dir = "assets/recommendation/tiki/content_based/"
+    content_based_dir = "docker_images/streamlit/cloud_app/assets/recommendation/tiki/content_based/"
     
     tfidf = models.TfidfModel.load(content_based_dir + "tfidf_model.gensim")
     index = similarities.SparseMatrixSimilarity.load(content_based_dir + "similarity_index.gensim")
@@ -339,7 +339,7 @@ def load_tfidf():
 
 @st.cache_data
 def load_search_query():
-    search_query_dir = "assets/recommendation/tiki/search_query/"
+    search_query_dir = "docker_images/streamlit/cloud_app/assets/recommendation/tiki/search_query/"
 
     search_tfidf = models.TfidfModel.load(search_query_dir + "search_tfidf_model.gensim")
     search_index = similarities.SparseMatrixSimilarity.load(search_query_dir + "search_similarity_index.gensim")
@@ -352,14 +352,14 @@ def show_recommendation():
     tfidf, index, dictionary = load_tfidf()
     search_tfidf, search_index, search_dictionary = load_search_query() 
 
-    als_dir = "assets/recommendation/tiki/rcm_collaborative_filtering.parquet"
-    products_path = "assets/gold/tiki/products.parquet"
-    users_path = "assets/gold/tiki/users.parquet"  
-    reviews_path = "assets/gold/tiki/reviews.parquet"
-    images_path = "assets/gold/tiki/images_url.parquet"
-    brands_path = "assets/gold/tiki/brands.parquet"
-    authors_path = "assets/gold/tiki/authors.parquet"
-    products_authors_path = "assets/gold/tiki/products_authors.parquet"
+    als_dir = "docker_images/streamlit/cloud_app/assets/recommendation/tiki/rcm_collaborative_filtering.parquet"
+    products_path = "docker_images/streamlit/cloud_app/assets/gold/tiki/products.parquet"
+    users_path = "docker_images/streamlit/cloud_app/assets/gold/tiki/users.parquet"  
+    reviews_path = "docker_images/streamlit/cloud_app/assets/gold/tiki/reviews.parquet"
+    images_path = "docker_images/streamlit/cloud_app/assets/gold/tiki/images_url.parquet"
+    brands_path = "docker_images/streamlit/cloud_app/assets/gold/tiki/brands.parquet"
+    authors_path = "docker_images/streamlit/cloud_app/assets/gold/tiki/authors.parquet"
+    products_authors_path = "docker_images/streamlit/cloud_app/assets/gold/tiki/products_authors.parquet"
     
     als_data = load_parquet(als_dir)
     products_df = load_parquet(products_path).sort_values(by=['product_id', 'seller_id']).reset_index()
