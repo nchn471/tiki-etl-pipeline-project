@@ -1,0 +1,10 @@
+streamlit==1.41.1
+PyJWT==2.10.1
+streamlit_option_menu==0.4.0
+pandas==2.2.3
+minio==7.2.12
+SQLAlchemy==2.0.36
+underthesea==6.8.4
+gensim==4.3.3
+psycopg2-binary==2.9.10
+streamlit_pdf_viewer
