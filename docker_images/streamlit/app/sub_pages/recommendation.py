@@ -1,14 +1,16 @@
 import streamlit as st
 import pandas as pd
-from contextlib import contextmanager
-from sqlalchemy import create_engine, text
-from minio import Minio
-from gensim import corpora, models, similarities
-from underthesea import word_tokenize
 import os 
 import shutil 
 import random
 import re
+
+from contextlib import contextmanager
+from sqlalchemy import create_engine
+from minio import Minio
+from gensim import corpora, models, similarities
+from underthesea import word_tokenize
+
 MINIO_CONFIG = {
     "endpoint_url": "minio:9000",
     "bucket": "warehouse",
@@ -50,12 +52,32 @@ def connect_minio(config):
     except Exception:
         raise
 
+@st.cache_data
 def load_stopword(STOP_WORDS):
     with open(STOP_WORDS, 'r', encoding = 'utf-8') as file:
-        stop_words = file.read()
+        stop_words = file.read()   
+
     stop_words = stop_words.split('\n')
     return stop_words
 
+def download_minio(minio_path):
+
+    with connect_minio(MINIO_CONFIG) as client:
+        objects = list(client.list_objects(MINIO_CONFIG['bucket'], prefix=minio_path, recursive=True))
+        os.makedirs("tmp", exist_ok=True)
+        local_path = "tmp/" + minio_path.split('/')[-1]
+        if len(objects) == 1 and objects[0].object_name == minio_path:
+            client.fget_object(MINIO_CONFIG['bucket'], minio_path, local_path)
+        else:
+            os.makedirs(local_path, exist_ok=True)
+            for obj in objects:
+                file_name = os.path.basename(obj.object_name)
+                local_file_path = os.path.join(local_path, file_name)
+
+                client.fget_object(MINIO_CONFIG['bucket'], obj.object_name, local_file_path)
+
+        return local_path
+    
 def process_text(document):
     # Change to lower text
     document = document.lower()
@@ -106,6 +128,7 @@ def gensim_recommendation(n, product_id, seller_id, dictionary, tfidf,index, df)
     
     result = result[(result['product_id'] != product_id) | (result['seller_id'] != seller_id)]
     result = result.sort_values(by='score', ascending=False)
+    result = result[result['score'] >= 0.1]
 
     return result[['product_id','seller_id']] 
 
@@ -127,38 +150,12 @@ def search_query(text, dictionary, tfidf,index, df):
     
     result = pd.concat([product_find[['product_id', 'seller_id']], match_products], axis=1)
     result = result.sort_values(by='score', ascending=False)
-    
+    result = result[result['score'] >=0.1]
     return result[['product_id','seller_id']] 
 
 def als_recommendation(customer_id, als_data):
     als_result = als_data[als_data["customer_id"] == customer_id]
     return als_result[["product_id","seller_id"]]
-
-def download_minio(minio_path):
-
-    with connect_minio(MINIO_CONFIG) as client:
-        objects = list(client.list_objects(MINIO_CONFIG['bucket'], prefix=minio_path, recursive=True))
-        os.makedirs("tmp", exist_ok=True)
-        local_path = "tmp/" + minio_path.split('/')[-1]
-        if len(objects) == 1 and objects[0].object_name == minio_path:
-            client.fget_object(MINIO_CONFIG['bucket'], minio_path, local_path)
-        else:
-            os.makedirs(local_path, exist_ok=True)
-            for obj in objects:
-                file_name = os.path.basename(obj.object_name)
-                local_file_path = os.path.join(local_path, file_name)
-
-                client.fget_object(MINIO_CONFIG['bucket'], obj.object_name, local_file_path)
-
-        return local_path
-
-
-
-def next_image():
-    st.session_state.counter += 1
-
-def prev_image():
-    st.session_state.counter -= 1
 
 def fetch_images(product_id, seller_id, size=None):
     with connect_psql(PSQL_CONFIG) as db_conn:
@@ -214,6 +211,16 @@ def fetch_brand_or_author(product_id,seller_id):
 
         return ("Thương hiệu:", brand_name)
     
+def fetch_user(user_id, df):
+    users = df[df.user_id == user_id].to_dict(orient='records')[0]
+    return users
+
+def next_image():
+    st.session_state.counter += 1
+
+def prev_image():
+    st.session_state.counter -= 1
+
 def generate_star_rating(rating, max_stars=5):
     full_stars = int(rating)  # Full stars
     empty_stars = max_stars - full_stars 
@@ -251,7 +258,6 @@ def show_product(product_id, seller_id, df):
         brand_author_name = fetch_brand_or_author(product_id, seller_id)
 
 
-        # Display breadcrumbs in light gray color
         st.markdown(f"""
             <p style="font-size: 16px; color: #A9A9A9; margin-bottom: 0px;">
                 {' &nbsp;&nbsp;&gt;&nbsp;&nbsp;'.join(breadcrumbs)}
@@ -261,8 +267,10 @@ def show_product(product_id, seller_id, df):
                 {brand_author_name[0]} {brand_author_name[1]}
             </span>
 
-            <h1 style="font-size: 28px; font-weight: bold; color: #333">
-                {product['product_name']}
+            <h1 style="font-size: 28px; font-weight: bold; color: #333;">
+                <a href="{product['product_url']}" target="_blank" style="text-decoration: none; color: inherit;">
+                    {product['product_name']}
+                </a>
             </h1>
             
             <p style="font-size: 18px;">  
@@ -282,58 +290,81 @@ def show_product(product_id, seller_id, df):
             </div>
         """, unsafe_allow_html=True)
 
-    with st.expander("Mô tả sản phẩm"):
-        # Use empty for scrollable content
-        description = product['description']
+    # with st.expander("Mô tả sản phẩm"):
 
-        description = re.sub(r'<img[^>]*>', '', description)
-        scrollable_content = st.empty()
-            #     <h1 style="font-size: 24px; font-weight: bold; color: #333"> 
-            #     Mô tả sản phẩm
-            # </h1>
-        scrollable_content.markdown(f"""
+    description = product['description']
 
-            <div style="max-height: 500px; overflow-y: scroll; font-size: 14px;">
-                <style>
-                    img {{
-                        max-width: 100%;
-                        height: auto;
-                    }}
-                </style>
-                {description}
-            </div>
-        """, unsafe_allow_html=True)
+    description = re.sub(r'<img[^>]*>', '', description)
+    scrollable_content = st.empty()
+
+    scrollable_content.markdown(f"""
+        <h1 style="font-size: 36px; font-weight: bold; color: #333"> 
+            Description
+        </h1>
+        <div style="max-height: 500px; overflow-y: scroll; font-size: 14px;">
+            <style>
+                img {{
+                    max-width: 100%;
+                    height: auto;
+                }}
+            </style>
+            {description}
+        </div>
+    """, unsafe_allow_html=True)
 
 def show_thumbnail_product(product_id, seller_id, df):
     # Fetch image URL for the product
     product = df[(df.product_id == product_id) & (df.seller_id == seller_id)].to_dict(orient='records')[0]
 
     images_url = fetch_images(product_id, seller_id, size = "thumbnail")
-    
-    st.button('📖', key=random.random(), on_click=select_product, args=(product_id,seller_id))
-    st.image(images_url[0], use_container_width=True)
-             
+
     product_name = product['product_name']
-    if len(product_name) > 40:
-        product_name = product_name[:37] + "..."  # Rút gọn tên nếu quá dài
+    if len(product_name) > 54:
+        product_name = product_name[:45] + "..."  # Rút gọn tên nếu quá dài
     
-    st.markdown(f"""
-        <p style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">
-            {product_name}
-        </p>
-        <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="color: rgb(255, 66, 78); font-size: 14px; font-weight: bold;">
-                {product["price"]}₫
-            </span>
-            <p style="font-size: 12px; color: grey; margin: 2px 0;">⭐ {product['rating_average']} ({product['review_count']} đánh giá)</p>
+    with st.container():
+        st.markdown(
+            f"""
+            <div style="text-align: center;">
+                <img src="{images_url[0]}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+            </div>
+            """, unsafe_allow_html=True
+        )
+        st.markdown(f"""
+            <p style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">
+                {product_name}
+            </p>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="color: rgb(255, 66, 78); font-size: 14px; font-weight: bold;">
+                    {product["price"]}₫
+                </span>
+                <p style="font-size: 12px; color: grey; margin: 2px 0;">⭐ {product['rating_average']} ({product['review_count']} đánh giá)</p>
 
-        </div>
-    """, unsafe_allow_html=True)
-    
-
+            </div>
+        """, unsafe_allow_html=True)
+        st.button('📖', key=random.random(), on_click=select_product, args=(product_id, seller_id))
 
 def show_thumbnail_products(ids, df):
+    if len(ids) ==0:
+        st.warning("No Matching Products Found")
+    items_per_row = 5
+    num_rows = len(ids) // items_per_row + (len(ids) % items_per_row > 0)
+    for i in range(num_rows):
+        cols = st.columns(items_per_row)
+        start_idx = i * items_per_row
+        end_idx = (i + 1) * items_per_row if i < num_rows - 1 else len(ids)
+        for c in range(start_idx, end_idx):
+            with cols[c % items_per_row]:
+                product = ids.iloc[c]
+                product_id = product['product_id']
+                seller_id = product['seller_id']
+                show_thumbnail_product(product_id,seller_id, df)
 
+def show_recent_buy_products(user_id, reviews_df, df):
+    ids = reviews_df[reviews_df.customer_id == user_id]
+    ids = ids.head(5)
+    if len(ids) == 0:
+        st.warning("Your Shopping History is Empty")
     items_per_row = 5
     num_rows = len(ids) // items_per_row + (len(ids) % items_per_row > 0)
     for i in range(num_rows):
@@ -350,11 +381,12 @@ def show_thumbnail_products(ids, df):
 def select_product(product_id, seller_id):
     st.session_state['product_id'] = product_id
     st.session_state['seller_id'] = seller_id
+
 def select_user(user_id):
     st.session_state['user_id'] = user_id
+
 def show_recommendation():
 
-    # ============== Prepare Data ========================== #
     content_based_dir = "recommendation/tiki/content_based/"
     tfidf_path = content_based_dir + "tfidf_model.gensim"
     dict_path = content_based_dir + "dictionary.gensim"
@@ -378,46 +410,136 @@ def show_recommendation():
     # shutil.rmtree("tmp")
 
     with connect_psql(PSQL_CONFIG) as db_conn:
-        sql_stm = "SELECT * FROM dwh.products"
-        products_df = pd.read_sql(sql_stm,db_conn)
+        sql_products_stm = "SELECT * FROM dwh.products"
+        products_df = pd.read_sql(sql_products_stm,db_conn)
         products_df = products_df.astype({'product_id': 'int', 'seller_id': 'int'})  
         products_df = products_df.sort_values(by=['product_id', 'seller_id']).reset_index()
 
-    # ============== End  ========================== #
+        sql_users_stm = "SELECT * from dwh.users"
+        users_df = pd.read_sql(sql_users_stm,db_conn)
+        users_df['user_id'] = users_df['user_id'].astype(int)  
 
-    option = st.radio("Select an option:", ["Search", "Enter Product ID and Seller ID"])
-    if option == "Search":
-        text = st.text_input("Search Engine: ")
+        sql_reviews_stm = "SELECT * from dwh.reviews"
+        reviews_df = pd.read_sql(sql_reviews_stm,db_conn)
+        reviews_df = reviews_df.astype({'customer_id' :'int', 'product_id': 'int', 'seller_id': 'int'})  
 
-        if text:
+    if "product_id" not in st.session_state:
+        st.session_state['product_id'] = 74021317
 
+    if "seller_id" not in st.session_state:
+        st.session_state['seller_id'] = 1  
+
+    if "user_id" not in st.session_state:
+        st.session_state['user_id'] = 32353  
+    st.markdown(
+        """
+        <div style='display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    # height: 55vh;'>
+            <h1 style='font-size: 50px; 
+                    color: #0073e6;   
+                    font-weight: bold;
+                    font-family: monospace;'>
+                Tiki Recommender System
+            </h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    option = st.radio("View Data?", ["Products", "Users", "Reviews", "Hidden"], horizontal=True, index =3)
+
+    if option == "Products":
+        st.subheader("🛍️ Product List")
+        st.dataframe(products_df)
+
+    elif option == "Users":
+        st.subheader("👤 User List")
+        st.dataframe(users_df)
+
+    elif option == "Reviews":
+        st.subheader("⭐ Review List")
+        st.dataframe(reviews_df)
+
+    if 'Consent' not in st.session_state:
+        st.info('You can check User ID, Product ID, Seller ID by viewing above data')
+        data_consent_button = st.button("I understand")
+        placeholder = st.empty()
+        st.session_state['Consent'] = True
+        if data_consent_button: 
+            placeholder.empty()
+
+    logo,search = st.columns([1,5])
+    with logo:
+        st.image("Logo_Tiki_2023.png", use_container_width=True)
+    with search:
+        option = st.radio(
+            "",
+            ["🔍 Search", "📦 Enter Product ID and Seller ID"],
+            horizontal=True,
+            label_visibility="collapsed"
+        )
+
+        if option == "🔍 Search":
+            col1,col2 = st.columns(2)
+            with col2:
+                search_btn = st.button("🔎", use_container_width=False)
+            with col1:
+                text = st.text_input("", placeholder="🔎 Search Engine...", label_visibility="collapsed")
+
+        else:
+            col1, col2,col3 = st.columns(3)
+            with col3:
+                search_btn = st.button("🔎", use_container_width=False)
+            with col1:
+                product_id = st.text_input("", placeholder="🆔 Product ID:", label_visibility="collapsed")
+            with col2:
+                seller_id = st.text_input("", placeholder="🏪 Seller ID:", label_visibility="collapsed")
+
+
+    if option == "🔍 Search":
+        if text or search_btn:
             ids = search_query(text, search_dictionary, search_tfidf, search_index, products_df)
-
-            with st.expander("Search Results", expanded=True):
+            with st.expander("🔽 Search Results", expanded=True):
                 show_thumbnail_products(ids, products_df)
+    elif search_btn and product_id and seller_id:
+        select_product(int(product_id), int(seller_id))
 
-    else:
-        product_id = st.text_input("pid:")
-        seller_id = st.text_input("sid:")    
-        if product_id and seller_id:
-            select_product(int(product_id), int(seller_id))
-        
     show_product(st.session_state['product_id'],st.session_state['seller_id'], products_df)
+    
+    gensim_ids = gensim_recommendation(10, st.session_state['product_id'], st.session_state['seller_id'], dictionary, tfidf, index, products_df)
+    st.markdown(f"""
+        <h1 style="font-size: 36px; font-weight: bold; color: #333"> 
+            Maybe you like these products
+        </h1>""",
+        unsafe_allow_html=True)
+    st.info("Content Based Filtering Method")
+    show_thumbnail_products(gensim_ids, products_df)
+    
+    user_id = st.sidebar.text_input("User ID", placeholder="Eg: 4178, 4306, 4434,...")
+    log_in_clicked = st.sidebar.button("Log In")
 
-    with st.expander("Content Based Filtering"):
-        if 'product_id' in st.session_state and 'seller_id' in st.session_state:
 
-            gensim_ids = gensim_recommendation(10, st.session_state['product_id'], st.session_state['seller_id'], dictionary, tfidf, index, products_df)
-            st.header("Có thể bạn sẽ thích")
-            show_thumbnail_products(gensim_ids, products_df)
+    if log_in_clicked:
+        select_user(int(user_id))
+        user = fetch_user(int(user_id), users_df)
+        st.sidebar.markdown(f"""
+            <h2 style="text-align: center; color: #333;">🔐 You are logged in as <span style="color: #007BFF;">{user['user_name']}</span></h2>
+        """, unsafe_allow_html=True)
+        st.markdown(f"""
+            <h1 style="font-size: 36px; font-weight: bold; color: #333"> 
+                Your Recent Purchases
+            </h1>""",
+            unsafe_allow_html=True)
+        st.info(f"{user['user_name']}'s Purchase History")
+        show_recent_buy_products(int(user_id),reviews_df,products_df)
+        als_ids = als_recommendation(st.session_state['user_id'],als_data)
+        st.markdown("""
+            <h1 style="font-size: 36px; font-weight: bold; color: #333"> 
+                Products Liked by Customers Similar to You
+            </h1>
+        """, unsafe_allow_html=True)
 
-    with st.expander("Collaborative Filtering"):
-        customer_id = st.sidebar.text_input("User-ID", placeholder="Input your user id")
-        log_in_clicked = st.sidebar.button("Log In")
-        if log_in_clicked:
-            select_user(int(customer_id))
-            als_ids = als_recommendation(st.session_state['user_id'],als_data)
-            st.header("Có thể bạn sẽ thích")
-            show_thumbnail_products(als_ids, products_df)
-
+        st.info("Collaborative Filtering Method")
+        show_thumbnail_products(als_ids.head(5), products_df)
 

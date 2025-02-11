@@ -18,5 +18,77 @@ token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
 iframeUrl = f"{METABASE_SITE_URL}/embed/dashboard/{token}#bordered=true&titled=true"
 
 def show_dashboard():
+    st.markdown(
+        """
+        <div style='display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    # height: 55vh;'>
+            <h1 style='font-size: 50px; 
+                    color: #0073e6;   
+                    font-weight: bold;
+                    font-family: monospace;'>
+                Dashboard
+            </h1>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
     components.iframe(iframeUrl, width=1400, height=2000, scrolling=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # st.image("https://raw.githubusercontent.com/nchn471/tiki-etl-pipeline-project/refs/heads/main/wordcloud.png?token=GHSAT0AAAAAAC3F4FSP6BQAFQZ3LS7GMB24Z4MTRJA")

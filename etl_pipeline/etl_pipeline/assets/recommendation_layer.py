@@ -138,7 +138,6 @@ def rcm_search_query(gold_products):
     corpus = [dictionary.doc2bow(text) for text in info]
 
     tfidf = models.TfidfModel(corpus)
-
     feature_cnt = len(dictionary.token2id)
     index = similarities.SparseMatrixSimilarity(tfidf[corpus], num_features=feature_cnt)
 

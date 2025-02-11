@@ -108,9 +108,6 @@ def transform_silver_products(silver_products):
         ),
     )
 
-
-
-    
 @multi_asset(
     ins={
         "silver_reviews": AssetIn(
