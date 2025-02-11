@@ -55,7 +55,7 @@ def gensim_recommendation(n, product_id, seller_id, dictionary, tfidf,index, df)
     ).values[0]
 
     view_product = process_text(content).split()
-    stop_words = load_stopword("assets/vietnamese-stopwords.txt")
+    stop_words = load_stopword("docker_images/streamlit/cloud_app/assets/vietnamese-stopwords.txt")
 
     view_product = [text for text in view_product if text not in stop_words]
 
@@ -79,7 +79,7 @@ def gensim_recommendation(n, product_id, seller_id, dictionary, tfidf,index, df)
 def search_query(text, dictionary, tfidf,index, df):
 
     view_product = process_text(text).split()
-    stop_words = load_stopword("assets/vietnamese-stopwords.txt")
+    stop_words = load_stopword("docker_images/streamlit/cloud_app/assets/vietnamese-stopwords.txt")
 
     view_product = [text for text in view_product if text not in stop_words]
 
