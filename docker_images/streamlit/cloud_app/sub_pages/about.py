@@ -212,4 +212,4 @@ def show_about():
     Check them out in the sidebar! 🚀
     """)
     st.markdown("## 4. Detail Code")
-    https://github.com/nchn471/tiki-recommender-etl-pipeline
+    st.markdown("Check out the project on [GitHub](https://github.com/nchn471/tiki-recommender-etl-pipeline)")
