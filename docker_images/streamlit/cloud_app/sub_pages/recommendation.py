@@ -422,7 +422,7 @@ def show_recommendation():
 
     logo,search = st.columns([1,5])
     with logo:
-        st.image("assets/Logo_Tiki_2023.png", use_container_width=True)
+        st.image("docker_images/streamlit/cloud_app/assets/Logo_Tiki_2023.png", use_container_width=True)
     with search:
         option = st.radio(
             "",
