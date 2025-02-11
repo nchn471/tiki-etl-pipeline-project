@@ -22,7 +22,7 @@ def show_dashboard():
         unsafe_allow_html=True
     )
     
-    tab1_path = "assets/dashboard/tab1.pdf"
+    tab1_path = "docker_images/streamlit/cloud_app/assets/dashboard/tab1.pdf"
     tab2_path = "assets/dashboard/tab2.pdf"
     tab3_path = "assets/dashboard/tab3.pdf"
 
