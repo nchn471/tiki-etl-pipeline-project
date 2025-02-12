@@ -6,7 +6,7 @@ from sub_pages.about import show_about
 
 #Layout
 st.set_page_config(
-    page_title="Tiki",
+    page_title="Tiki Recommender ETL Pipeline System",
     layout="wide",
     page_icon=":mag_right:",
     initial_sidebar_state="expanded"
