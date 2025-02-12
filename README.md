@@ -2,7 +2,8 @@
 
 ## 1. Abstract
 This project is an **ETL pipeline** designed to extract raw data from [Tiki](https://tiki.vn/) (a Vietnamese e-commerce platform), transform and clean it, and store it in a **data warehouse** for analytics and recommendation system development.
-Go to [Tiki Recommender System ETL Pipeline to see my result](https://tiki-recommender-etl-pipeline.streamlit.app/)
+
+Go to [Tiki Recommender System ETL Pipeline App](https://tiki-recommender-etl-pipeline.streamlit.app/) to see my result
 
 This project applies knowledge from the **"Fundamental Data Engineering"** course by [AIDE](https://aisia.vn/courses). Special thanks to **Mr. Nguyen Thanh Binh** and **Mr. Hung Le** for their guidance.
 
