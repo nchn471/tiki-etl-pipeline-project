@@ -2,6 +2,7 @@
 
 ## 1. Abstract
 This project is an **ETL pipeline** designed to extract raw data from [Tiki](https://tiki.vn/) (a Vietnamese e-commerce platform), transform and clean it, and store it in a **data warehouse** for analytics and recommendation system development.
+Go to [Tiki Recommender System ETL Pipeline to see my result](https://tiki-recommender-etl-pipeline.streamlit.app/)
 
 This project applies knowledge from the **"Fundamental Data Engineering"** course by [AIDE](https://aisia.vn/courses). Special thanks to **Mr. Nguyen Thanh Binh** and **Mr. Hung Le** for their guidance.
 
@@ -108,7 +109,7 @@ model = als.fit(gold_reviews)
 
 ## 3. Serving
 - **Metabase Dashboard** for data visualization.
-- **Streamlit-based Recommendation System** for real-time product suggestions.
+- [**Streamlit-based Recommendation System**](https://tiki-recommender-etl-pipeline.streamlit.app) for real-time product suggestions.
 
 💡 **Explore these features in the sidebar!** 🚀
 

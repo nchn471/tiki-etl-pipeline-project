@@ -44,7 +44,7 @@ def show_about():
     st.markdown("### 2.1 Data Collection (Extract)")
     st.markdown(
         """
-        We define a Python class [`TikiCrawler`](https://github.com/nchn471/tiki-recommender-etl-pipeline/blob/main/etl_pipeline/etl_pipeline/resources/tiki_crawler.py) to fetch data from Tiki's API and store it as JSON files in MinIO, serving as a data lake.  
+        We define a Python class [`TikiCrawler`](https://github.com/nchn471/tiki-recommender-etl-pipeline/blob/main/etl_pipeline/etl_pipeline/resources/tiki_crawler.py) to fetch data from Tiki's API and store it as JSON files in MinIO (data lake).  
         The raw data is stored in MinIO with the following structure:
         """
     )
