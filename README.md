@@ -112,5 +112,5 @@ model = als.fit(gold_reviews)
 - **Metabase Dashboard** for data visualization.
 - [**Streamlit-based Recommendation System**] for real-time product suggestions.
 
-💡 **Explore these features in [Tiki Recommender System ETL Pipeline App]((https://tiki-recommender-etl-pipeline.streamlit.app))!** 🚀
+💡 **Explore these features in [Tiki Recommender System ETL Pipeline App](https://tiki-recommender-etl-pipeline.streamlit.app)!** 🚀
 
